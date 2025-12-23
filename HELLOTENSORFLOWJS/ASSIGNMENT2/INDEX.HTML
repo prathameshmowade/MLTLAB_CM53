@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignment 2 - Vector Operations</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+
+<h2>Assignment 2: Vector Addition & Multiplication</h2>
+
+<script>
+    const a = tf.tensor1d([1, 2, 3]);
+    const b = tf.tensor1d([4, 5, 6]);
+
+    const addResult = tf.add(a, b);
+    const mulResult = tf.mul(a, b);
+
+    addResult.print();
+    mulResult.print();
+</script>
+
+</body>
+</html>
