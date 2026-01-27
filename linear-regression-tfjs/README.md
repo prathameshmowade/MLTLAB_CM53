@@ -144,20 +144,4 @@ This project is for **educational and academic use only**.
 
 ---
 
-### ✅ How to add this on GitHub (Quick)
 
-1. Open `README.md` on GitHub
-2. Click ✏️ **Edit**
-3. Paste everything above
-4. Click **Commit changes**
-
----
-
-If you want:
-
-* 🌐 **GitHub Pages live demo**
-* 📸 **Add screenshots**
-* 📘 **Lab practical record**
-* 🧠 **Viva questions & answers**
-
-Just say 😊
