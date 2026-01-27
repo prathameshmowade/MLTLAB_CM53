@@ -1,8 +1,3 @@
-Got it 👍
-Here is the **FULL README.md with *your actual GitHub link already added***.
-You can **copy–paste this directly into README.md on GitHub**.
-
----
 
 # Linear Regression using TensorFlow.js (CDN)
 
