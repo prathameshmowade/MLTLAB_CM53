@@ -1,0 +1,26 @@
+sentence,sentiment
+I love this product,positive
+This app is amazing,positive
+The service was excellent,positive
+I am very happy with the experience,positive
+Absolutely fantastic performance,positive
+The quality is great,positive
+I really enjoyed using this,positive
+Customer support was helpful,positive
+The experience was wonderful,positive
+Highly recommended product,positive
+I am satisfied with the service,positive
+This is the best app ever,positive
+
+I hate this product,negative
+This app is terrible,negative
+The service was very bad,negative
+I am not happy with the experience,negative
+Absolutely horrible performance,negative
+The quality is poor,negative
+I regret using this,negative
+Customer support was useless,negative
+The experience was awful,negative
+Not recommended at all,negative
+I am dissatisfied with the service,negative
+This is the worst app ever,negative
