@@ -1,0 +1,4 @@
+Aim:
+To train a Convolutional Neural Network (CNN) on the MNIST
+handwritten digit dataset and evaluate its accuracy after
+5 epochs.
