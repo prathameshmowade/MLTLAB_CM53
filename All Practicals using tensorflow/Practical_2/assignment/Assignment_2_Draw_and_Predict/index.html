@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Assignment 2 - Digit Recognition</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #eef2ff;
+    }
+    canvas {
+      border: 2px solid #000;
+      background: white;
+      cursor: crosshair;
+    }
+    button {
+      padding: 10px 18px;
+      margin: 10px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Assignment 2: Draw & Predict Digit</h2>
+
+  <canvas id="canvas" width="280" height="280"></canvas><br>
+
+  <button onclick="clearCanvas()">Clear</button>
+  <button onclick="predict()">Predict</button>
+
+  <h3 id="output">Prediction: -</h3>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Practical 1 | Linear Regression – TensorFlow.js</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at top, #e0f2fe, #f8fafc);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0f172a;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 90%;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 30px;
+    }
+
+    .left h1 {
+      margin-top: 0;
+      font-size: 32px;
+      color: #1e3a8a;
+    }
+
+    .left p {
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    .tags {
+      margin: 20px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin-right: 8px;
+    }
+
+    .info-box {
+      background: #f1f5f9;
+      padding: 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      color: #475569;
+      margin-top: 20px;
+    }
+
+    .right {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      border-radius: 16px;
+      padding: 30px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .right h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .step span {
+      width: 26px;
+      height: 26px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    footer {
+      grid-column: 1 / -1;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="left">
+      <h1>Linear Regression</h1>
+      <p>
+        This practical demonstrates training a <b>Linear Regression</b> model on
+        <b>synthetic data</b> using <b>TensorFlow.js</b> in the browser environment.
+      </p>
+
+      <div class="tags">
+        <span class="tag">TensorFlow.js</span>
+        <span class="tag">Regression</span>
+        <span class="tag">Synthetic Data</span>
+        <span class="tag">Browser ML</span>
+      </div>
+
+      <div class="info-box">
+        📌 Open the <b>Browser Developer Console</b> to observe model training,
+        loss values, and prediction results.
+      </div>
+    </div>
+
+    <div class="right">
+      <h2>Workflow</h2>
+
+      <div class="step">
+        <span>1</span> Generate synthetic (x, y) data
+      </div>
+      <div class="step">
+        <span>2</span> Build model using tf.sequential()
+      </div>
+      <div class="step">
+        <span>3</span> Train with Gradient Descent
+      </div>
+      <div class="step">
+        <span>4</span> Predict unseen values
+      </div>
+    </div>
+
+    <footer>
+      Practical 1 • Machine Learning Tools • TensorFlow.js
+    </footer>
+
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
