@@ -1,0 +1,68 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #43cea2, #185a9d);
+}
+
+.card {
+    background: white;
+    padding: 35px;
+    border-radius: 20px;
+    text-align: center;
+    width: 420px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+h1 {
+    margin-bottom: 15px;
+}
+
+select {
+    padding: 8px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+}
+
+img {
+    width: 250px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 25px;
+    background: #ff512f;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+#loading {
+    margin-top: 10px;
+    font-size: 14px;
+    color: gray;
+}
+
+.prediction {
+    background: #f4f4f4;
+    padding: 8px;
+    border-radius: 10px;
+    margin: 8px 0;
+    text-align: left;
+}
+
+#accuracyBox {
+    margin-top: 15px;
+    font-weight: bold;
+}

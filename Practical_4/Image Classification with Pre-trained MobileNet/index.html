@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MobileNet vs COCO-SSD Comparison</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@latest"></script>
+
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: #eef7ff;
+        }
+
+        img {
+            margin: 10px;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>MobileNet vs COCO-SSD Comparison</h2>
+
+<div>
+    <img id="img1" src="images/dog.jpg" width="180">
+    <img id="img2" src="images/cat.jpg" width="180">
+    <img id="img3" src="images/car.jpg" width="180">
+    <img id="img4" src="images/bird.jpg" width="180">
+    <img id="img5" src="images/flower.jpg" width="180">
+</div>
+
+<br>
+
+<button onclick="compareModels()">Compare Models</button>
+
+<h3>Comparison Results:</h3>
+<div id="results"></div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

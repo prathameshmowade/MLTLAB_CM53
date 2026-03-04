@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignment 3 - Model Comparison</title>
+
+    <!-- TensorFlow Core -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+    <!-- MobileNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+    <!-- COCO-SSD -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>MobileNet vs COCO-SSD Comparison</h1>
+
+    <img id="preview" src="images/car.jpg" width="300">
+
+    <br><br>
+
+    <select id="imageSelect" onchange="changeImage()">
+        <option value="car.jpg">Car</option>
+        <option value="cat.jpg">Cat</option>
+        <option value="dog.jpg">Dog</option>
+        <option value="bird.jpg">Bird</option>
+        <option value="flower.jpg">Flower</option>
+    </select>
+
+    <button onclick="compareModels()">Compare Models</button>
+
+    <p id="loading">Loading Models...</p>
+
+    <div class="results">
+
+        <div class="box">
+            <h2>MobileNet (Classification)</h2>
+            <div id="mobileResult"></div>
+        </div>
+
+        <div class="box">
+            <h2>COCO-SSD (Object Detection)</h2>
+            <div id="cocoResult"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

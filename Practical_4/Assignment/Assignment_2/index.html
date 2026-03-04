@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignment 2 - Accuracy Testing</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card">
+        <h1>MobileNet Accuracy Testing</h1>
+
+        <select id="imageSelect" onchange="changeImage()">
+            <option value="cat.jpg">Cat</option>
+            <option value="dog.jpg">Dog</option>
+            <option value="bird.jpg">Bird</option>
+            <option value="car.jpg">Car</option>
+            <option value="flower.jpg">Flower</option>
+        </select>
+
+        <img id="preview" src="images/cat.jpg">
+
+        <button onclick="classifyImage()">Classify Image</button>
+
+        <div id="loading">Loading Model...</div>
+
+        <div id="result"></div>
+
+        <div id="accuracyBox"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
