@@ -1,0 +1,4 @@
+Aim:
+To design a canvas-based system that allows the user to
+draw a handwritten digit and classify it using a trained
+Convolutional Neural Network model.

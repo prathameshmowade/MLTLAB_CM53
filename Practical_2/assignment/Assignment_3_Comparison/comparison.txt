@@ -1,0 +1,16 @@
+Comparison:
+
+CNN Accuracy   : 95.2%
+Dense Accuracy: ~90%
+
+The Convolutional Neural Network performs better than the
+Dense Neural Network because CNN uses convolution and
+pooling layers to extract spatial features such as edges,
+curves, and shapes from images.
+
+The Dense network treats all pixels independently and
+does not capture spatial relationships, leading to lower
+accuracy.
+
+Hence, CNN is more suitable for image-based classification
+tasks like handwritten digit recognition.

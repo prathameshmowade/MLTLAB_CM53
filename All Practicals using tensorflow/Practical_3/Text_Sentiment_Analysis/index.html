@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Text Sentiment Analysis</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script defer src="main.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #fdfbfb, #ebedee);
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .card {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    p {
+      color: #666;
+      font-size: 15px;
+    }
+
+    .tag {
+      margin-top: 20px;
+      padding: 8px 14px;
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1565c0;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .footer {
+      margin-top: 25px;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>💬 Sentiment Analysis</h1>
+    <p>
+      Classifying text as <b>Positive</b> or <b>Negative</b><br>
+      using <b>TensorFlow.js</b>
+    </p>
+
+    <div class="tag">Practical 3 · Web Console</div>
+
+    <div class="footer">
+      Open browser console to view results
+    </div>
+  </div>
+
+</body>
+</html>

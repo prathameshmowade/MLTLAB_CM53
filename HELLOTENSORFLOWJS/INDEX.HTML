@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html><h2>Hello TensorFlow.js – Addition Example</h2>
+
+<head>
+    <title>Hello TensorFlow.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+
+<h2>TensorFlow.js Test</h2>
+
+<script>
+    const a = tf.tensor([1, 2, 3]);
+    const b = tf.tensor([4, 5, 6]);
+    const sum = tf.add(a, b);
+
+    console.log("Tensor a:");
+    a.print();
+
+    console.log("Tensor b:");
+    b.print();
+
+    console.log("Sum (a + b):");
+    sum.print();
+</script>
+
+</body>
+</html>

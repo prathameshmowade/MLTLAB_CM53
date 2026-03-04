@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignment 3 - Reshape vs Flatten</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+
+<h2>Assignment 3: Reshape and Flatten</h2>
+
+<script>
+    const tensor = tf.tensor2d([[1, 2], [3, 4]]);
+
+    const reshaped = tensor.reshape([4, 1]);
+    const flattened = tensor.flatten();
+
+    tensor.print();
+    reshaped.print();
+    flattened.print();
+</script>
+
+</body>
+</html>

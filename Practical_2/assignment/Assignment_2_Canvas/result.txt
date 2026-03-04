@@ -1,0 +1,4 @@
+Result:
+The user successfully drew a handwritten digit on the
+canvas. The trained CNN model correctly classified the
+digit and displayed the predicted output in the console.

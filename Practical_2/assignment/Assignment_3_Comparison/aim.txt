@@ -1,0 +1,4 @@
+Aim:
+To compare the performance of a Convolutional Neural
+Network (CNN) and a simple Dense Neural Network for
+handwritten digit recognition using the MNIST dataset.
