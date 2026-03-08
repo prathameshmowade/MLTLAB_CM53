@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>MobileNet Webcam Classification</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+</head>
+
+<body>
+
+<h1 class="title">AI Object Classification</h1>
+
+<div class="container">
+
+<video id="video" autoplay playsinline></video>
+
+<div class="info">
+
+<h3>Prediction</h3>
+
+<p id="result">Loading model...</p>
+
+<p id="confidence"></p>
+
+</div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

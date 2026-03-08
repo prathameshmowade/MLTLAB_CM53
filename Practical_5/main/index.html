@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AI Vision Demo</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+</head>
+
+<body>
+
+<h1 class="title">AI Vision System</h1>
+
+<div class="container">
+
+<div class="cameraBox">
+
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+
+</div>
+
+<div class="panel">
+
+<h3>Detection Panel</h3>
+
+<p>📦 Object: <span id="object">--</span></p>
+<p>✋ Fingers: <span id="fingers">0</span></p>
+
+</div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
