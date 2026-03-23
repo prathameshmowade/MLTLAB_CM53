@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pose Accuracy Comparison</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+
+<style>
+body {
+    font-family: "Segoe UI", Arial;
+    background: #eef2f7;
+    text-align: center;
+    margin: 0;
+}
+
+h2 {
+    color: #1f3c88;
+}
+
+canvas {
+    border-radius: 15px;
+    margin-top: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.stats {
+    margin-top: 15px;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.green { color: #28a745; font-weight: bold; }
+.red { color: #e74c3c; font-weight: bold; }
+</style>
+</head>
+
+<body>
+
+<h2>📊 Single vs Multi Pose Accuracy</h2>
+
+<canvas id="canvas" width="640" height="480"></canvas>
+
+<div class="stats">
+    <span class="green">Single Pose:</span> <span id="single">0</span> |
+    <span class="red">Multi Pose:</span> <span id="multi">0</span>
+</div>
+
+<p style="color:#555;">
+Green = Single (More Accurate) | Red = Multi (Less Accurate)
+</p>
+
+<script src="app.js"></script>
+
+</body>
+</html>

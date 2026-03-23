@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Load & Predict Model</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Reload & Predict Model</h1>
+
+    <div class="card">
+        <button onclick="loadModel()">📂 Load Model</button>
+
+        <input type="number" id="inputValue" placeholder="Enter value">
+
+        <button onclick="predict()">🔍 Predict</button>
+
+        <p id="result">Waiting...</p>
+    </div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
