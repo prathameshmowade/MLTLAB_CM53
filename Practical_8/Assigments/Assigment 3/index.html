@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fruit Classifier 🍎</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+  <script defer src="script.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      color: white;
+      text-align: center;
+    }
+
+    .container {
+      margin: 20px auto;
+      width: 80%;
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    video {
+      width: 320px;
+      border-radius: 15px;
+      border: 3px solid white;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 10px;
+      border: none;
+      background: #00c9ff;
+      color: white;
+      cursor: pointer;
+    }
+
+    #classButtons button {
+      background: #ff7eb3;
+    }
+
+    #results {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<h1>🍓 Fruit Classifier (Final)</h1>
+
+<div class="container">
+
+<video id="webcam" autoplay playsinline></video>
+
+  <div>
+    <input type="text" id="newClass" placeholder="Enter fruit name">
+    <button onclick="addNewClass()">Add Class</button>
+  </div>
+
+  <div id="classButtons"></div>
+
+  <div>
+    <button onclick="capture()">Capture</button>
+    <button onclick="train()">Train</button>
+    <button onclick="evaluateModel()">Evaluate</button>
+  </div>
+
+  <div id="results">Waiting...</div>
+
+</div>
+
+</body>
+</html>

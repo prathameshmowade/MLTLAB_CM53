@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fruit Classifier Pro 🍎</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+  <script defer src="script.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 2.2rem;
+    }
+
+    .container {
+      width: 85%;
+      margin: auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    video {
+      width: 320px;
+      border-radius: 15px;
+      border: 3px solid white;
+    }
+
+    .controls {
+      margin: 15px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      margin: 5px;
+      background: #ff7eb3;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #ff4f81;
+      transform: scale(1.05);
+    }
+
+    .class-box {
+      display: inline-block;
+      padding: 10px;
+      margin: 5px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+    }
+
+    #results {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    progress {
+      width: 300px;
+      height: 15px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<h1>🍓 Fruit Classifier (3 Classes)</h1>
+
+<div class="container">
+
+<video id="webcam" autoplay playsinline></video>
+
+  <div class="controls">
+    <button onclick="setClass('Apple')">🍎 Apple</button>
+    <button onclick="setClass('Banana')">🍌 Banana</button>
+    <button onclick="setClass('Orange')">🍊 Orange</button>
+  </div>
+
+  <div>
+    <button onclick="capture()">📸 Capture Image</button>
+    <button onclick="train()">🧠 Train Model</button>
+    <button onclick="predict()">🔍 Predict</button>
+  </div>
+
+  <div id="classList"></div>
+
+  <div id="results">Waiting...</div>
+  <progress id="confidenceBar" value="0" max="100"></progress>
+
+</div>
+
+</body>
+</html>

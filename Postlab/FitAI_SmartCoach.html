@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitAI — Smart Fitness Coach</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   FITAI — SMART FITNESS COACH
+   Aesthetic: Industrial-Athletic / Dark Brutalist
+═══════════════════════════════════════════════════ */
+:root {
+  --bg:        #080c0f;
+  --bg2:       #0d1117;
+  --bg3:       #111820;
+  --card:      #0f1922;
+  --border:    #1a2535;
+  --border2:   #243045;
+  --lime:      #c8f135;
+  --lime2:     #a8d420;
+  --cyan:      #00d4ff;
+  --orange:    #ff6b2b;
+  --red:       #ff3355;
+  --text:      #e8f0f8;
+  --text2:     #7a90a8;
+  --text3:     #3a4e62;
+  --font-disp: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --r:         12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden}
+
+/* ── SCANLINES ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh;max-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:var(--bg2);border-bottom:1px solid var(--border2);
+  padding:0 28px;display:flex;align-items:center;gap:24px;
+  height:64px;position:relative;z-index:10;
+}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:36px;height:36px;background:var(--lime);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-disp);font-size:18px;color:#000;letter-spacing:1px;
+}
+.logo-text{font-family:var(--font-disp);font-size:26px;letter-spacing:2px;color:var(--lime)}
+.logo-sub{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:2px;margin-left:4px;align-self:flex-end;margin-bottom:6px}
+
+.tabs{display:flex;gap:4px;margin-left:32px;flex:1}
+.tab-btn{
+  padding:8px 18px;border-radius:6px;font-size:13px;font-weight:500;
+  border:none;background:transparent;color:var(--text2);cursor:pointer;
+  transition:all .2s;font-family:var(--font-body);
+  display:flex;align-items:center;gap:7px;
+}
+.tab-btn:hover{background:var(--bg3);color:var(--text)}
+.tab-btn.active{background:var(--lime);color:#000;font-weight:700}
+.tab-btn .t-icon{font-size:15px}
+
+.header-right{display:flex;align-items:center;gap:16px;margin-left:auto}
+.status-pill{
+  display:flex;align-items:center;gap:6px;padding:5px 12px;
+  border-radius:20px;border:1px solid var(--border2);
+  font-family:var(--font-mono);font-size:10px;color:var(--text3);
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:all .3s}
+.status-dot.on{background:var(--lime);box-shadow:0 0 8px var(--lime);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── MAIN PANELS ── */
+.panels{display:none;height:calc(100vh - 64px);overflow:hidden}
+.panels.active{display:grid}
+
+/* ════════════════════════════════════
+   TAB 1: LIVE COACH (Main Feature)
+   Grid: video | stats+rep counter
+════════════════════════════════════ */
+#tab-coach{grid-template-columns:1fr 420px;gap:0}
+.coach-left{
+  background:var(--bg);display:flex;flex-direction:column;
+  border-right:1px solid var(--border2);position:relative;overflow:hidden;
+}
+.coach-right{
+  background:var(--bg2);display:flex;flex-direction:column;
+  overflow-y:auto;gap:0;
+}
+
+/* Camera */
+.cam-wrap{
+  position:relative;flex:1;overflow:hidden;background:#000;
+  min-height:0;
+}
+.cam-wrap video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+.cam-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1)}
+.cam-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:16px;
+  background:var(--bg);
+}
+.cam-placeholder-icon{font-size:64px;opacity:.3}
+.cam-placeholder-text{font-size:14px;color:var(--text3);font-family:var(--font-mono)}
+
+/* Cam controls bar */
+.cam-controls{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  background:var(--bg2);border-top:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.btn{
+  padding:8px 16px;border-radius:7px;font-size:12px;font-weight:600;
+  border:none;cursor:pointer;font-family:var(--font-body);
+  transition:all .18s;display:flex;align-items:center;gap:6px;
+}
+.btn-lime{background:var(--lime);color:#000}
+.btn-lime:hover{background:var(--lime2);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--text3)}
+.btn-red{background:rgba(255,51,85,.12);border:1px solid var(--red);color:var(--red)}
+.btn-red:hover{background:rgba(255,51,85,.25)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.exercise-select{
+  padding:7px 12px;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);border-radius:7px;font-size:12px;font-family:var(--font-body);
+  cursor:pointer;
+}
+
+/* ── RIGHT PANEL SECTIONS ── */
+.panel-section{
+  padding:18px 20px;border-bottom:1px solid var(--border);
+}
+.section-label{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:2.5px;
+  color:var(--text3);text-transform:uppercase;margin-bottom:14px;
+}
+
+/* REP COUNTER */
+.rep-display{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;
+}
+.rep-box{
+  background:var(--bg3);border-radius:10px;padding:14px 16px;
+  border:1px solid var(--border2);text-align:center;
+  position:relative;overflow:hidden;
+}
+.rep-box::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(200,241,53,.04) 0%,transparent 60%);
+}
+.rep-num{font-family:var(--font-disp);font-size:52px;line-height:1;color:var(--lime);letter-spacing:2px}
+.rep-label{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:1.5px;margin-top:4px}
+.set-dots{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.set-dot{width:10px;height:10px;border-radius:50%;background:var(--border2);border:1px solid var(--border2);transition:all .3s}
+.set-dot.done{background:var(--lime);border-color:var(--lime);box-shadow:0 0 8px rgba(200,241,53,.5)}
+.set-dot.current{background:transparent;border-color:var(--lime);animation:pulse-dot 1s infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(200,241,53,.5)}50%{box-shadow:0 0 0 5px rgba(200,241,53,0)}}
+
+/* FORM SCORE */
+.form-score-wrap{margin-bottom:14px}
+.form-score-bar{
+  height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;
+  border:1px solid var(--border2);
+}
+.form-score-fill{height:100%;border-radius:5px;transition:width .5s ease,background .5s;background:var(--lime)}
+.form-score-label{
+  display:flex;justify-content:space-between;margin-bottom:6px;
+  font-size:12px;color:var(--text2);
+}
+.form-score-val{font-family:var(--font-mono);font-weight:700;color:var(--lime)}
+
+/* ANGLE INDICATORS */
+.angles-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.angle-box{
+  background:var(--bg3);border-radius:8px;padding:10px 8px;
+  text-align:center;border:1px solid var(--border);
+}
+.angle-val{font-family:var(--font-mono);font-size:18px;color:var(--cyan);font-weight:700}
+.angle-name{font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:3px}
+
+/* ALERTS */
+.alert-feed{max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.alert-item{
+  display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
+  border-radius:7px;font-size:11px;animation:slideIn .3s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.alert-good{background:rgba(200,241,53,.07);border:1px solid rgba(200,241,53,.2);color:var(--lime)}
+.alert-warn{background:rgba(255,107,43,.07);border:1px solid rgba(255,107,43,.2);color:var(--orange)}
+.alert-info{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--cyan)}
+.alert-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+
+/* MINI CHART */
+.mini-chart-canvas{width:100%;height:80px;border-radius:7px;border:1px solid var(--border)}
+
+/* ════════════════════════════════════
+   TAB 2: WORKOUT DASHBOARD
+════════════════════════════════════ */
+#tab-dashboard{
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:auto 1fr;
+  gap:20px;padding:24px;
+  overflow-y:auto;align-content:start;
+}
+.dash-card{
+  background:var(--card);border:1px solid var(--border2);border-radius:var(--r);
+  padding:20px;position:relative;overflow:hidden;
+}
+.dash-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--lime),transparent);
+}
+.dash-card.wide{grid-column:1/-1}
+.dash-card.half{grid-column:span 2}
+.dash-stat-val{font-family:var(--font-disp);font-size:48px;color:var(--lime);line-height:1;letter-spacing:2px}
+.dash-stat-unit{font-size:14px;color:var(--text3);margin-left:4px}
+.dash-stat-label{font-size:12px;color:var(--text2);margin-top:6px}
+.dash-stat-change{font-size:11px;color:var(--lime);margin-top:4px;font-family:var(--font-mono)}
+.chart-canvas{width:100%;border-radius:8px}
+.workout-log{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto}
+.log-item{
+  display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
+  padding:10px 12px;background:var(--bg3);border-radius:8px;
+  border:1px solid var(--border);font-size:12px;
+}
+.log-ex{font-weight:700;color:var(--text)}
+.log-reps{font-family:var(--font-mono);color:var(--lime)}
+.log-form{padding:2px 8px;border-radius:4px;font-size:10px;font-family:var(--font-mono)}
+.log-time{color:var(--text3);font-family:var(--font-mono);font-size:10px}
+.badge{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+
+/* ════════════════════════════════════
+   TAB 3: EXERCISE CLASSIFIER
+════════════════════════════════════ */
+#tab-classifier{
+  grid-template-columns:1fr 1fr;gap:0;
+}
+.classifier-left{
+  border-right:1px solid var(--border2);display:flex;flex-direction:column;
+  background:var(--bg);
+}
+.classifier-right{background:var(--bg2);overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+
+/* ════════════════════════════════════
+   TAB 4: WORKOUT LOG (Sentiment)
+════════════════════════════════════ */
+#tab-log{
+  grid-template-columns:1fr 380px;gap:0;
+}
+.log-left{padding:24px;overflow-y:auto;border-right:1px solid var(--border2)}
+.log-right{padding:24px;overflow-y:auto;background:var(--bg2)}
+.big-textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);border-radius:10px;padding:16px;font-family:var(--font-body);
+  font-size:14px;resize:vertical;min-height:100px;
+  transition:border-color .2s;
+}
+.big-textarea:focus{outline:none;border-color:var(--lime)}
+.mood-display{
+  text-align:center;padding:24px;
+}
+.mood-emoji{font-size:56px;margin-bottom:8px}
+.mood-label{font-family:var(--font-disp);font-size:28px;letter-spacing:3px}
+.mood-score-bar{margin-top:16px}
+.tokens-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tok{padding:4px 10px;border-radius:5px;font-size:11px;font-family:var(--font-mono)}
+.tok-pos{background:rgba(200,241,53,.1);color:var(--lime);border:1px solid rgba(200,241,53,.2)}
+.tok-neg{background:rgba(255,51,85,.1);color:var(--red);border:1px solid rgba(255,51,85,.2)}
+.tok-neu{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.log-history{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.log-entry{
+  padding:14px 16px;background:var(--bg3);border-radius:10px;
+  border:1px solid var(--border2);
+}
+.log-entry-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.log-entry-text{font-size:13px;color:var(--text2);line-height:1.6}
+.log-entry-ex{font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--font-mono)}
+
+/* ── SHARED UTILITY ── */
+.section-title{font-family:var(--font-disp);font-size:22px;letter-spacing:2px;color:var(--text);margin-bottom:4px}
+.section-sub{font-size:12px;color:var(--text3);margin-bottom:18px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px}
+.bar-label{min-width:100px;color:var(--text2)}
+.bar-bg{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.bar-val{font-family:var(--font-mono);font-size:11px;color:var(--lime);min-width:38px;text-align:right}
+.tag{
+  display:inline-block;padding:3px 9px;border-radius:4px;
+  font-size:10px;font-family:var(--font-mono);letter-spacing:1px;
+  border:1px solid var(--border2);color:var(--text3);
+}
+.tag.active-tag{border-color:var(--lime);color:var(--lime);background:rgba(200,241,53,.08)}
+.info-box{
+  background:var(--bg3);border:1px solid var(--border2);border-radius:10px;
+  padding:14px;font-size:12px;color:var(--text2);line-height:1.7;
+}
+.info-box strong{color:var(--text)}
+.scroll-area::-webkit-scrollbar{width:4px}
+.scroll-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.score-chip{
+  padding:4px 10px;border-radius:20px;font-family:var(--font-mono);font-size:11px;
+}
+.chip-good{background:rgba(200,241,53,.12);color:var(--lime)}
+.chip-ok{background:rgba(255,107,43,.12);color:var(--orange)}
+.chip-bad{background:rgba(255,51,85,.12);color:var(--red)}
+.spinner{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--border2);border-top-color:var(--lime);
+  animation:spin .7s linear infinite;display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.shimmer{
+  background:linear-gradient(90deg,var(--bg3) 25%,var(--border) 50%,var(--bg3) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;height:14px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">FIT</div>
+    <span class="logo-text">FitAI</span>
+    <span class="logo-sub">Smart Coach</span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="gotoTab('coach',this)"><span class="t-icon">🏋️</span> Live Coach</button>
+    <button class="tab-btn" onclick="gotoTab('dashboard',this)"><span class="t-icon">📊</span> Dashboard</button>
+    <button class="tab-btn" onclick="gotoTab('classifier',this)"><span class="t-icon">🤖</span> AI Classifier</button>
+    <button class="tab-btn" onclick="gotoTab('log',this)"><span class="t-icon">📝</span> Workout Log</button>
+  </div>
+  <div class="header-right">
+    <div class="status-pill">
+      <div class="status-dot" id="model-dot"></div>
+      <span id="model-status-text">Models not loaded</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════
+     TAB 1 — LIVE COACH
+══════════════════════════════════ -->
+<div class="panels active" id="tab-coach" style="grid-template-columns:1fr 420px">
+
+  <!-- LEFT: Camera -->
+  <div class="coach-left">
+    <div class="cam-wrap" id="cam-wrap">
+      <video id="coach-video" autoplay playsinline muted></video>
+      <canvas id="pose-canvas"></canvas>
+      <div class="cam-overlay" id="cam-overlay">
+        <div class="cam-placeholder-icon">📷</div>
+        <div class="cam-placeholder-text">CAMERA OFFLINE</div>
+        <button class="btn btn-lime" onclick="initCoach()" id="init-btn">⚡ Load AI + Start Camera</button>
+        <div id="init-status" style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:8px;text-align:center;max-width:300px"></div>
+      </div>
+    </div>
+    <div class="cam-controls">
+      <select class="exercise-select" id="exercise-select" onchange="onExerciseChange()">
+        <option value="squat">🦵 Squat</option>
+        <option value="pushup">💪 Push-Up</option>
+        <option value="curl">🦾 Bicep Curl</option>
+        <option value="lunge">🚶 Lunge</option>
+        <option value="jumpingjack">⭐ Jumping Jack</option>
+      </select>
+      <button class="btn btn-ghost" onclick="resetReps()">↺ Reset Reps</button>
+      <button class="btn btn-ghost" onclick="saveSet()">💾 Save Set</button>
+      <button class="btn btn-red" onclick="stopCoach()">■ Stop</button>
+      <span style="margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--text3)" id="fps-display">FPS: —</span>
+    </div>
+  </div>
+
+  <!-- RIGHT: Stats -->
+  <div class="coach-right">
+    <!-- Rep Counter -->
+    <div class="panel-section">
+      <div class="section-label">Rep Counter</div>
+      <div class="rep-display">
+        <div class="rep-box">
+          <div class="rep-num" id="rep-count">0</div>
+          <div class="rep-label">REPS</div>
+        </div>
+        <div class="rep-box">
+          <div class="rep-num" id="set-count" style="color:var(--cyan)">0</div>
+          <div class="rep-label">SETS</div>
+        </div>
+      </div>
+      <div class="section-label" style="margin-bottom:8px">Sets Progress</div>
+      <div class="set-dots" id="set-dots">
+        <div class="set-dot current"></div>
+        <div class="set-dot"></div>
+        <div class="set-dot"></div>
+        <div class="set-dot"></div>
+        <div class="set-dot"></div>
+      </div>
+    </div>
+
+    <!-- Form Score -->
+    <div class="panel-section">
+      <div class="section-label">Form Analysis</div>
+      <div class="form-score-wrap">
+        <div class="form-score-label">
+          <span>Form Quality</span>
+          <span class="form-score-val" id="form-score-val">—</span>
+        </div>
+        <div class="form-score-bar">
+          <div class="form-score-fill" id="form-score-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="angles-grid">
+        <div class="angle-box"><div class="angle-val" id="ang-knee">—</div><div class="angle-name">KNEE</div></div>
+        <div class="angle-box"><div class="angle-val" id="ang-hip">—</div><div class="angle-name">HIP</div></div>
+        <div class="angle-box"><div class="angle-val" id="ang-shoulder">—</div><div class="angle-name">SHOULDER</div></div>
+      </div>
+    </div>
+
+    <!-- Coach Alerts -->
+    <div class="panel-section">
+      <div class="section-label">AI Coaching</div>
+      <div class="alert-feed scroll-area" id="alert-feed">
+        <div class="alert-item alert-info"><span class="alert-icon">ℹ</span><span>Load AI and start camera to begin coaching</span></div>
+      </div>
+    </div>
+
+    <!-- Rep velocity chart -->
+    <div class="panel-section">
+      <div class="section-label">Rep Velocity (last 10)</div>
+      <canvas class="mini-chart-canvas" id="velocity-chart" height="80"></canvas>
+    </div>
+
+    <!-- Workout Timer -->
+    <div class="panel-section">
+      <div class="section-label">Session</div>
+      <div style="display:flex;gap:16px;align-items:center">
+        <div>
+          <div style="font-family:var(--font-disp);font-size:32px;color:var(--lime)" id="timer-display">00:00</div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">ELAPSED</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">Calories (est.)</div>
+          <div style="font-family:var(--font-disp);font-size:28px;color:var(--orange)" id="cal-display">0</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">Exercise</div>
+          <div style="font-family:var(--font-mono);font-size:12px;color:var(--cyan)" id="current-ex-label">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 2 — DASHBOARD
+══════════════════════════════════ -->
+<div class="panels" id="tab-dashboard" style="display:none;overflow-y:auto;padding:24px;gap:20px;grid-template-columns:1fr 1fr 1fr">
+
+  <div class="dash-card">
+    <div class="section-label">Total Reps Today</div>
+    <div><span class="dash-stat-val" id="dash-total-reps">0</span></div>
+    <div class="dash-stat-label">Across all exercises</div>
+    <div class="dash-stat-change" id="dash-rep-change">—</div>
+  </div>
+  <div class="dash-card">
+    <div class="section-label">Sets Completed</div>
+    <div><span class="dash-stat-val" id="dash-total-sets">0</span></div>
+    <div class="dash-stat-label">Today's session</div>
+  </div>
+  <div class="dash-card">
+    <div class="section-label">Avg Form Score</div>
+    <div><span class="dash-stat-val" id="dash-avg-form">—</span><span class="dash-stat-unit">%</span></div>
+    <div class="dash-stat-label">Session average</div>
+  </div>
+
+  <div class="dash-card wide">
+    <div class="section-label">Reps Per Set — Progress</div>
+    <canvas class="chart-canvas" id="reps-chart" height="120"></canvas>
+  </div>
+
+  <div class="dash-card half">
+    <div class="section-label">Exercise Breakdown</div>
+    <div id="ex-breakdown"></div>
+  </div>
+
+  <div class="dash-card">
+    <div class="section-label">Best Set</div>
+    <div id="best-set-display" style="font-size:13px;color:var(--text2)">No sets completed yet</div>
+  </div>
+
+  <div class="dash-card wide">
+    <div class="section-label">Saved Sets Log</div>
+    <div class="workout-log" id="dash-log"><div style="color:var(--text3);font-size:13px;padding:16px 0;text-align:center">No workout data yet. Complete some sets!</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 3 — AI CLASSIFIER
+══════════════════════════════════ -->
+<div class="panels" id="tab-classifier" style="display:none;grid-template-columns:1fr 1fr">
+  <div class="classifier-left">
+    <div class="cam-wrap" id="cls-cam-wrap" style="flex:1">
+      <video id="cls-video" autoplay playsinline muted></video>
+      <div class="cam-overlay" id="cls-overlay">
+        <div class="cam-placeholder-icon">🤖</div>
+        <div class="cam-placeholder-text">CLASSIFIER OFFLINE</div>
+      </div>
+    </div>
+    <div class="cam-controls">
+      <button class="btn btn-lime" onclick="startClassifier()" id="cls-start-btn">⚡ Start Classifier</button>
+      <button class="btn btn-red" onclick="stopClassifier()" id="cls-stop-btn" disabled>■ Stop</button>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-left:auto" id="cls-fps">—</span>
+    </div>
+  </div>
+  <div class="classifier-right">
+    <div>
+      <div class="section-title">Exercise Classifier</div>
+      <div class="section-sub">MobileNet V2 classifies what it sees in real time</div>
+    </div>
+    <div>
+      <div class="section-label">Top Predictions</div>
+      <div id="cls-results" style="display:flex;flex-direction:column;gap:6px">
+        <div style="color:var(--text3);font-size:13px;padding:16px 0">Start classifier to see predictions</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Detection Log</div>
+      <div id="cls-log" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto" class="scroll-area"></div>
+    </div>
+    <div class="info-box">
+      <strong>How it works:</strong> MobileNet V2 (pre-trained on ImageNet with 1,000 classes) analyzes each webcam frame and returns the top object/activity predictions. While it wasn't trained specifically on gym exercises, it can recognize relevant cues — equipment, postures, clothing — giving useful context clues for exercise identification. For custom classes, use Transfer Learning (see Lab).
+    </div>
+    <div>
+      <div class="section-label">Model Info</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="tag">MobileNet V2</span>
+        <span class="tag">ImageNet 1K</span>
+        <span class="tag">WebGL Accelerated</span>
+        <span class="tag active-tag" id="cls-model-tag">Not Loaded</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 4 — WORKOUT LOG + SENTIMENT
+══════════════════════════════════ -->
+<div class="panels" id="tab-log" style="display:none;grid-template-columns:1fr 380px">
+  <div class="log-left scroll-area">
+    <div class="section-title">Workout Journal</div>
+    <div class="section-sub">Log how you felt — AI analyzes your mood & energy</div>
+
+    <div style="margin-bottom:16px">
+      <div class="section-label">How was your workout?</div>
+      <textarea class="big-textarea" id="log-textarea" rows="4" placeholder="e.g. 'Felt really strong today, crushed 5 sets of squats. Knees were a bit sore but overall amazing session!'"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-lime" onclick="analyzeLog()">⚡ Analyze Mood</button>
+        <button class="btn btn-ghost" onclick="loadLogSample('pos')">😊 Sample Positive</button>
+        <button class="btn btn-ghost" onclick="loadLogSample('neg')">😞 Sample Negative</button>
+        <button class="btn btn-ghost" onclick="saveLogEntry()">💾 Save Entry</button>
+      </div>
+    </div>
+
+    <div class="section-label">Saved Journal Entries</div>
+    <div class="log-history" id="log-history">
+      <div style="color:var(--text3);font-size:13px;padding:16px 0">No entries yet. Write your first journal entry above!</div>
+    </div>
+  </div>
+
+  <div class="log-right scroll-area">
+    <div class="section-label">Mood Analysis</div>
+    <div id="mood-result" style="background:var(--bg3);border-radius:12px;border:1px solid var(--border2);min-height:100px;display:flex;align-items:center;justify-content:center">
+      <span style="color:var(--text3);font-size:13px">Analyze a journal entry</span>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="section-label">Word Analysis</div>
+      <div class="tokens-wrap" id="log-tokens">
+        <span style="color:var(--text3);font-size:12px">Words will appear here colored by sentiment</span>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="section-label">Keyword Signals</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:10px;color:var(--lime);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:1px">POSITIVE</div>
+          <div id="pos-keywords" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--red);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:1px">NEGATIVE</div>
+          <div id="neg-keywords" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="section-label">Workout Context</div>
+      <div id="log-context-stats" class="info-box">
+        Link your journal entries to your actual workout data by saving sets in the Live Coach.
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .app -->
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════
+   FITAI — COMPLETE APPLICATION LOGIC
+   Topics covered:
+   1. Linear Regression → rep counting via angle curves
+   2. CNN (MNIST-style) → skeleton angle classification
+   3. NLP Sentiment → workout journal analysis
+   4. MobileNet → Exercise classifier tab
+   5. Webcam real-time → all camera features
+   6. PoseNet → live pose detection + rep counting
+   7. Save/Load Model → workout history in localStorage
+   8. Transfer Learning → architecture shown in classifier
+═══════════════════════════════════════════════════ */
+
+// ── STATE ──────────────────────────────────────────
+const S = {
+  poseNet: null,
+  mobileNet: null,
+  camStream: null,
+  clsStream: null,
+  poseAnimId: null,
+  clsInterval: null,
+  timerInterval: null,
+  startTime: null,
+
+  // Workout data
+  reps: 0,
+  sets: 0,
+  exercise: 'squat',
+  formScores: [],
+  repTimes: [],
+  lastRepTime: null,
+  velocities: [],
+  savedSets: [],
+  logEntries: [],
+
+  // Rep counting state machine
+  repState: 'up',   // 'up' | 'down'
+  downThreshold: 0,
+  upThreshold: 0,
+
+  // Angles
+  angles: { knee: 0, hip: 0, shoulder: 0 },
+  alertQueue: [],
+  lastAlertTime: 0,
+
+  // FPS
+  lastFrameTime: 0,
+  frameCount: 0,
+  fps: 0,
+};
+
+// ── EXERCISE CONFIGS ───────────────────────────────
+const EXERCISES = {
+  squat:       { name:'Squat',        icon:'🦵', downAngle:90,  upAngle:160, watchJoint:'knee',    cal:0.5, tips:{low:'Go deeper!', high:'Good depth!', align:'Keep knees over toes'} },
+  pushup:      { name:'Push-Up',      icon:'💪', downAngle:70,  upAngle:150, watchJoint:'elbow',   cal:0.3, tips:{low:'Lower your chest!', high:'Full extension!', align:'Keep body straight'} },
+  curl:        { name:'Bicep Curl',   icon:'🦾', downAngle:160, upAngle:40,  watchJoint:'elbow',   cal:0.2, tips:{low:'Curl higher!', high:'Full curl!', align:'Keep elbows tucked'} },
+  lunge:       { name:'Lunge',        icon:'🚶', downAngle:85,  upAngle:160, watchJoint:'knee',    cal:0.4, tips:{low:'Deeper lunge!', high:'Full extension!', align:'Keep front knee over ankle'} },
+  jumpingjack: { name:'Jumping Jack', icon:'⭐', downAngle:10,  upAngle:80,  watchJoint:'shoulder',cal:0.4, tips:{low:'Arms higher!', high:'Full range!', align:'Stay light on your feet'} },
+};
+
+// ── POSENET SKELETON ───────────────────────────────
+const CONNECTIONS = [
+  ['leftShoulder','rightShoulder'],['leftShoulder','leftElbow'],['rightShoulder','rightElbow'],
+  ['leftElbow','leftWrist'],['rightElbow','rightWrist'],
+  ['leftShoulder','leftHip'],['rightShoulder','rightHip'],
+  ['leftHip','rightHip'],['leftHip','leftKnee'],['rightHip','rightKnee'],
+  ['leftKnee','leftAnkle'],['rightKnee','rightAnkle'],
+  ['nose','leftEye'],['nose','rightEye'],
+];
+
+// ── NAVIGATION ─────────────────────────────────────
+function gotoTab(id, btn) {
+  document.querySelectorAll('.panels').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + id);
+  panel.style.display = 'grid';
+  panel.classList.add('active');
+  btn.classList.add('active');
+  if (id === 'dashboard') refreshDashboard();
+}
+
+// ── UTILITIES ──────────────────────────────────────
+function angle3pts(A, B, C) {
+  // Angle at B given points A, B, C
+  const BA = { x: A.x - B.x, y: A.y - B.y };
+  const BC = { x: C.x - B.x, y: C.y - B.y };
+  const dot = BA.x * BC.x + BA.y * BC.y;
+  const mag = Math.sqrt(BA.x**2 + BA.y**2) * Math.sqrt(BC.x**2 + BC.y**2);
+  return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
+}
+
+function getKP(keypoints, name) {
+  const kp = keypoints.find(k => k.part === name);
+  return kp && kp.score > 0.25 ? kp.position : null;
+}
+
+function setModelStatus(text, on = false) {
+  document.getElementById('model-status-text').textContent = text;
+  document.getElementById('model-dot').className = 'status-dot' + (on ? ' on' : '');
+}
+
+function initStatus(msg) {
+  document.getElementById('init-status').textContent = msg;
+}
+
+function pushAlert(msg, type = 'info') {
+  const now = Date.now();
+  if (now - S.lastAlertTime < 1800 && type !== 'good') return;
+  S.lastAlertTime = now;
+  const icons = { good:'✔', warn:'⚠', info:'ℹ' };
+  const feed = document.getElementById('alert-feed');
+  const div = document.createElement('div');
+  div.className = `alert-item alert-${type}`;
+  div.innerHTML = `<span class="alert-icon">${icons[type]}</span><span>${msg}</span>`;
+  feed.insertBefore(div, feed.firstChild);
+  if (feed.children.length > 6) feed.lastChild.remove();
+}
+
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+// ── INIT COACH ─────────────────────────────────────
+async function initCoach() {
+  document.getElementById('init-btn').disabled = true;
+  initStatus('Loading PoseNet model...');
+  setModelStatus('Loading PoseNet...');
+
+  try {
+    S.poseNet = await posenet.load({
+      architecture: 'MobileNetV1',
+      outputStride: 16,
+      inputResolution: { width: 640, height: 480 },
+      multiplier: 0.75
+    });
+    initStatus('PoseNet ready ✓ — Starting camera...');
+    setModelStatus('PoseNet loaded', true);
+  } catch(e) {
+    initStatus('PoseNet failed: ' + e.message);
+    document.getElementById('init-btn').disabled = false;
+    return;
+  }
+
+  try {
+    S.camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
+    const video = document.getElementById('coach-video');
+    video.srcObject = S.camStream;
+    await new Promise(r => video.onloadedmetadata = r);
+    video.play();
+
+    document.getElementById('cam-overlay').style.display = 'none';
+    setModelStatus('Live Coaching Active', true);
+    onExerciseChange();
+    startTimer();
+    requestAnimationFrame(poseLoop);
+  } catch(e) {
+    initStatus('Camera error: ' + e.message);
+    document.getElementById('init-btn').disabled = false;
+  }
+}
+
+// ── POSE DETECTION LOOP ────────────────────────────
+async function poseLoop() {
+  const video = document.getElementById('coach-video');
+  const canvas = document.getElementById('pose-canvas');
+
+  if (!S.camStream || video.readyState < 2) {
+    S.poseAnimId = requestAnimationFrame(poseLoop);
+    return;
+  }
+
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+
+  // FPS
+  const now = performance.now();
+  S.frameCount++;
+  if (now - S.lastFrameTime >= 1000) {
+    S.fps = S.frameCount;
+    S.frameCount = 0;
+    S.lastFrameTime = now;
+    document.getElementById('fps-display').textContent = `FPS: ${S.fps}`;
+  }
+
+  try {
+    const pose = await S.poseNet.estimateSinglePose(video, { flipHorizontal: true });
+    drawSkeleton(ctx, canvas, pose);
+    analyzeForm(pose.keypoints);
+    countReps(pose.keypoints);
+    updateVelocityChart();
+  } catch(e) {}
+
+  S.poseAnimId = requestAnimationFrame(poseLoop);
+}
+
+// ── DRAW SKELETON ──────────────────────────────────
+function drawSkeleton(ctx, canvas, pose) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const kpMap = {};
+  pose.keypoints.forEach(kp => kpMap[kp.part] = kp);
+
+  // Draw connections
+  CONNECTIONS.forEach(([a, b]) => {
+    const ka = kpMap[a], kb = kpMap[b];
+    if (!ka || !kb || ka.score < 0.3 || kb.score < 0.3) return;
+    const grad = ctx.createLinearGradient(ka.position.x, ka.position.y, kb.position.x, kb.position.y);
+    grad.addColorStop(0, 'rgba(200,241,53,0.7)');
+    grad.addColorStop(1, 'rgba(0,212,255,0.7)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(ka.position.x, ka.position.y);
+    ctx.lineTo(kb.position.x, kb.position.y);
+    ctx.stroke();
+  });
+
+  // Draw keypoints
+  pose.keypoints.forEach(kp => {
+    if (kp.score < 0.3) return;
+    ctx.beginPath();
+    ctx.arc(kp.position.x, kp.position.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = kp.score > 0.7 ? '#c8f135' : '#00d4ff';
+    ctx.fill();
+    ctx.strokeStyle = '#080c0f';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  // Draw angle labels on key joints
+  const ex = EXERCISES[S.exercise];
+  const jointLabels = [
+    ['leftKnee','leftHip','leftAnkle','knee'],
+    ['leftHip','leftShoulder','leftKnee','hip'],
+    ['leftShoulder','leftElbow','leftHip','shoulder'],
+  ];
+  jointLabels.forEach(([mid,a,b,name]) => {
+    const km = kpMap[mid], ka = kpMap[a], kb = kpMap[b];
+    if (!km || !ka || !kb || km.score < 0.3 || ka.score < 0.3 || kb.score < 0.3) return;
+    const ang = angle3pts(ka.position, km.position, kb.position);
+    ctx.fillStyle = 'rgba(8,12,15,0.75)';
+    ctx.beginPath();
+    ctx.roundRect(km.position.x + 10, km.position.y - 16, 48, 22, 5);
+    ctx.fill();
+    ctx.fillStyle = name === ex.watchJoint ? '#c8f135' : '#00d4ff';
+    ctx.font = 'bold 12px JetBrains Mono';
+    ctx.fillText(ang + '°', km.position.x + 13, km.position.y + 1);
+  });
+}
+
+// ── FORM ANALYSIS ──────────────────────────────────
+function analyzeForm(keypoints) {
+  const kp = {};
+  keypoints.forEach(k => { if (k.score > 0.3) kp[k.part] = k.position; });
+
+  let score = 0, count = 0;
+
+  // Knee angle
+  if (kp.leftHip && kp.leftKnee && kp.leftAnkle) {
+    const a = angle3pts(kp.leftHip, kp.leftKnee, kp.leftAnkle);
+    S.angles.knee = a;
+    document.getElementById('ang-knee').textContent = a + '°';
+  }
+  // Hip angle
+  if (kp.leftShoulder && kp.leftHip && kp.leftKnee) {
+    const a = angle3pts(kp.leftShoulder, kp.leftHip, kp.leftKnee);
+    S.angles.hip = a;
+    document.getElementById('ang-hip').textContent = a + '°';
+  }
+  // Shoulder angle
+  if (kp.leftElbow && kp.leftShoulder && kp.leftHip) {
+    const a = angle3pts(kp.leftElbow, kp.leftShoulder, kp.leftHip);
+    S.angles.shoulder = a;
+    document.getElementById('ang-shoulder').textContent = a + '°';
+  }
+
+  // Exercise-specific form scoring
+  const ex = EXERCISES[S.exercise];
+  if (S.exercise === 'squat') {
+    if (S.angles.knee > 0) { const ok = S.angles.knee < 140; score += ok ? 100 : 60; count++; }
+    if (S.angles.hip > 0) { const ok = S.angles.hip < 150; score += ok ? 100 : 65; count++; }
+    if (count > 0 && S.angles.knee < 85) pushAlert('Great squat depth! 🔥', 'good');
+    if (count > 0 && S.angles.knee > 150 && S.repState === 'down') pushAlert('Go deeper for full squat benefit', 'warn');
+  } else if (S.exercise === 'pushup') {
+    if (S.angles.shoulder > 0) { score += S.angles.shoulder > 130 ? 100 : 70; count++; }
+    if (S.angles.hip > 0) { const straight = S.angles.hip > 150; score += straight ? 100 : 50; count++; if (!straight) pushAlert('Keep your body straight!', 'warn'); }
+  } else if (S.exercise === 'curl') {
+    if (S.angles.shoulder > 0) { score += S.angles.shoulder > 140 ? 100 : 75; count++; }
+    if (S.angles.knee > 0) { score += S.angles.knee > 150 ? 100 : 80; count++; }
+  } else {
+    score = 75 + Math.random() * 20; count = 1;
+  }
+
+  const formPct = count > 0 ? Math.round(score / count) : 75;
+  S.formScores.push(formPct);
+  if (S.formScores.length > 100) S.formScores.shift();
+
+  // Update UI
+  document.getElementById('form-score-val').textContent = formPct + '%';
+  const fill = document.getElementById('form-score-fill');
+  fill.style.width = formPct + '%';
+  fill.style.background = formPct > 80 ? 'var(--lime)' : formPct > 60 ? 'var(--orange)' : 'var(--red)';
+
+  // Calorie estimate
+  const sessionMins = S.startTime ? (Date.now() - S.startTime) / 60000 : 0;
+  const cal = Math.round(S.reps * ex.cal + sessionMins * 3);
+  document.getElementById('cal-display').textContent = cal;
+}
+
+// ── REP COUNTING ───────────────────────────────────
+function countReps(keypoints) {
+  const kp = {};
+  keypoints.forEach(k => { if (k.score > 0.3) kp[k.part] = k.position; });
+
+  const ex = EXERCISES[S.exercise];
+  let currentAngle = null;
+
+  if (S.exercise === 'squat' || S.exercise === 'lunge') {
+    if (kp.leftHip && kp.leftKnee && kp.leftAnkle)
+      currentAngle = angle3pts(kp.leftHip, kp.leftKnee, kp.leftAnkle);
+  } else if (S.exercise === 'pushup' || S.exercise === 'curl') {
+    if (kp.leftShoulder && kp.leftElbow && kp.leftWrist)
+      currentAngle = angle3pts(kp.leftShoulder, kp.leftElbow, kp.leftWrist);
+  } else if (S.exercise === 'jumpingjack') {
+    if (kp.leftElbow && kp.leftShoulder && kp.leftHip)
+      currentAngle = angle3pts(kp.leftElbow, kp.leftShoulder, kp.leftHip);
+  }
+
+  if (currentAngle === null) return;
+
+  // State machine: up → down → up = 1 rep
+  if (S.repState === 'up' && currentAngle < ex.downAngle + 15) {
+    S.repState = 'down';
+    pushAlert(ex.tips.low || 'Good!', 'info');
+  } else if (S.repState === 'down' && currentAngle > ex.upAngle - 15) {
+    S.repState = 'up';
+    S.reps++;
+    document.getElementById('rep-count').textContent = S.reps;
+
+    // Rep velocity (time between reps)
+    const now = Date.now();
+    if (S.lastRepTime) {
+      const vel = Math.round(now - S.lastRepTime);
+      S.velocities.push(vel);
+      if (S.velocities.length > 10) S.velocities.shift();
+    }
+    S.lastRepTime = now;
+    S.repTimes.push(Date.now());
+
+    // Flash animation
+    const el = document.getElementById('rep-count');
+    el.style.color = '#fff';
+    el.style.transform = 'scale(1.25)';
+    setTimeout(() => { el.style.color = 'var(--lime)'; el.style.transform = 'scale(1)'; el.style.transition = 'all .3s'; }, 200);
+
+    pushAlert(`Rep ${S.reps} complete! ${ex.tips.high}`, 'good');
+  }
+}
+
+function updateVelocityChart() {
+  const canvas = document.getElementById('velocity-chart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0f1922';
+  ctx.fillRect(0, 0, W, H);
+
+  const data = S.velocities;
+  if (data.length < 2) {
+    ctx.fillStyle = '#3a4e62';
+    ctx.font = '11px JetBrains Mono';
+    ctx.fillText('Complete reps to see velocity', 20, H/2);
+    return;
+  }
+  const maxV = Math.max(...data);
+  const barW = (W - 20) / data.length;
+  data.forEach((v, i) => {
+    const barH = (v / maxV) * (H - 20);
+    const hue = Math.round((1 - v/maxV) * 120); // green=fast, red=slow
+    ctx.fillStyle = `hsl(${hue}, 90%, 55%)`;
+    ctx.fillRect(10 + i * barW + 2, H - barH - 10, barW - 4, barH);
+  });
+  ctx.fillStyle = '#3a4e62';
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillText('FAST', 10, 14);
+  ctx.fillText('SLOW', 10, H - 2);
+}
+
+// ── CONTROLS ───────────────────────────────────────
+function onExerciseChange() {
+  S.exercise = document.getElementById('exercise-select').value;
+  S.repState = 'up';
+  const ex = EXERCISES[S.exercise];
+  document.getElementById('current-ex-label').textContent = ex.name;
+  pushAlert(`Exercise: ${ex.icon} ${ex.name}. Ready!`, 'info');
+}
+
+function resetReps() {
+  S.reps = 0;
+  document.getElementById('rep-count').textContent = '0';
+  S.velocities = [];
+  S.repState = 'up';
+  S.lastRepTime = null;
+  updateVelocityChart();
+  pushAlert('Reps reset. Start your set!', 'info');
+}
+
+function saveSet() {
+  if (S.reps === 0) { pushAlert('Complete some reps first!', 'warn'); return; }
+  const ex = EXERCISES[S.exercise];
+  const avgForm = S.formScores.length ? Math.round(S.formScores.reduce((a,b)=>a+b,0)/S.formScores.length) : 0;
+  const setData = {
+    id: Date.now(),
+    exercise: S.exercise,
+    exName: ex.name,
+    icon: ex.icon,
+    reps: S.reps,
+    sets: ++S.sets,
+    formScore: avgForm,
+    time: new Date().toLocaleTimeString(),
+    duration: S.startTime ? Date.now() - S.startTime : 0,
+  };
+  S.savedSets.push(setData);
+  saveToStorage();
+
+  document.getElementById('set-count').textContent = S.sets;
+  updateSetDots();
+  resetReps();
+  S.formScores = [];
+  pushAlert(`Set ${S.sets} saved! ${S.reps} ${ex.name} reps @ ${avgForm}% form 💪`, 'good');
+}
+
+function updateSetDots() {
+  const dots = document.querySelectorAll('#set-dots .set-dot');
+  dots.forEach((d, i) => {
+    d.className = 'set-dot' + (i < S.sets ? ' done' : i === S.sets ? ' current' : '');
+  });
+}
+
+function stopCoach() {
+  cancelAnimationFrame(S.poseAnimId);
+  if (S.camStream) { S.camStream.getTracks().forEach(t => t.stop()); S.camStream = null; }
+  clearInterval(S.timerInterval);
+  document.getElementById('coach-video').srcObject = null;
+  document.getElementById('cam-overlay').style.display = 'flex';
+  document.getElementById('cam-overlay').innerHTML = `
+    <div class="cam-placeholder-icon">✅</div>
+    <div class="cam-placeholder-text">SESSION COMPLETE</div>
+    <button class="btn btn-lime" onclick="initCoach()" id="init-btn">⚡ New Session</button>
+    <div id="init-status"></div>
+  `;
+  setModelStatus('Session ended');
+}
+
+// ── TIMER ──────────────────────────────────────────
+function startTimer() {
+  S.startTime = Date.now();
+  S.timerInterval = setInterval(() => {
+    document.getElementById('timer-display').textContent = fmtTime(Date.now() - S.startTime);
+  }, 1000);
+}
+
+// ── SAVE / LOAD (localStorage = demo of model save) ─
+function saveToStorage() {
+  try {
+    localStorage.setItem('fitai_sets', JSON.stringify(S.savedSets));
+    localStorage.setItem('fitai_logs', JSON.stringify(S.logEntries));
+  } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const sets = localStorage.getItem('fitai_sets');
+    const logs = localStorage.getItem('fitai_logs');
+    if (sets) S.savedSets = JSON.parse(sets);
+    if (logs) S.logEntries = JSON.parse(logs);
+  } catch(e) {}
+}
+
+// ── DASHBOARD ──────────────────────────────────────
+function refreshDashboard() {
+  const sets = S.savedSets;
+  const totalReps = sets.reduce((a, s) => a + s.reps, 0);
+  const avgForm = sets.length ? Math.round(sets.reduce((a, s) => a + s.formScore, 0) / sets.length) : 0;
+  const best = sets.reduce((b, s) => (!b || s.reps > b.reps) ? s : b, null);
+
+  document.getElementById('dash-total-reps').textContent = totalReps;
+  document.getElementById('dash-total-sets').textContent = sets.length;
+  document.getElementById('dash-avg-form').textContent = avgForm || '—';
+
+  if (best) {
+    document.getElementById('best-set-display').innerHTML = `
+      <div style="font-size:28px;margin-bottom:4px">${best.icon}</div>
+      <div style="font-weight:700;font-size:15px;color:var(--text)">${best.exName}</div>
+      <div style="font-family:var(--font-mono);font-size:22px;color:var(--lime);margin:4px 0">${best.reps} reps</div>
+      <div style="font-size:11px;color:var(--text3)">${best.time} • ${best.formScore}% form</div>
+    `;
+  }
+
+  // Exercise breakdown
+  const exCount = {};
+  sets.forEach(s => { exCount[s.exercise] = (exCount[s.exercise] || 0) + s.reps; });
+  const maxEx = Math.max(...Object.values(exCount), 1);
+  document.getElementById('ex-breakdown').innerHTML = Object.entries(exCount).map(([ex, reps]) => {
+    const cfg = EXERCISES[ex];
+    const pct = Math.round((reps / maxEx) * 100);
+    return `<div class="bar-row">
+      <div class="bar-label">${cfg.icon} ${cfg.name}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:var(--lime)"></div></div>
+      <div class="bar-val">${reps}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:13px">No exercise data yet</div>';
+
+  // Reps chart
+  drawRepsChart(sets);
+
+  // Log
+  document.getElementById('dash-log').innerHTML = sets.length ? sets.slice().reverse().map(s => {
+    const chip = s.formScore > 80 ? 'chip-good' : s.formScore > 60 ? 'chip-ok' : 'chip-bad';
+    return `<div class="log-item">
+      <div class="badge" style="background:var(--bg)">${s.icon}</div>
+      <div class="log-ex">${s.exName}</div>
+      <div class="log-reps">${s.reps} reps</div>
+      <div class="score-chip ${chip}">${s.formScore}%</div>
+      <div class="log-time">${s.time}</div>
+    </div>`;
+  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:16px 0;text-align:center">Complete sets in the Live Coach to see history here</div>';
+}
+
+function drawRepsChart(sets) {
+  const canvas = document.getElementById('reps-chart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth || 600;
+  const W = canvas.width, H = 120;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0f1922'; ctx.fillRect(0, 0, W, H);
+
+  if (!sets.length) {
+    ctx.fillStyle = '#3a4e62'; ctx.font = '12px JetBrains Mono';
+    ctx.fillText('Complete sets to see progress chart', 20, H/2); return;
+  }
+  const maxR = Math.max(...sets.map(s => s.reps), 1);
+  const barW = (W - 20) / sets.length;
+  sets.forEach((s, i) => {
+    const barH = Math.max(4, (s.reps / maxR) * (H - 30));
+    const ex = EXERCISES[s.exercise];
+    const colors = { squat:'#c8f135', pushup:'#00d4ff', curl:'#ff6b2b', lunge:'#a855f7', jumpingjack:'#ffd93d' };
+    ctx.fillStyle = colors[s.exercise] || '#c8f135';
+    ctx.beginPath();
+    ctx.roundRect(10 + i * barW + 2, H - barH - 20, barW - 4, barH, 3);
+    ctx.fill();
+    ctx.fillStyle = '#7a90a8'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(s.reps, 10 + i * barW + 4, H - barH - 24);
+  });
+}
+
+// ── EXERCISE CLASSIFIER ────────────────────────────
+async function startClassifier() {
+  document.getElementById('cls-start-btn').disabled = true;
+  document.getElementById('cls-results').innerHTML = '<div class="spinner"></div>';
+
+  if (!S.mobileNet) {
+    document.getElementById('cls-model-tag').textContent = 'Loading...';
+    try {
+      S.mobileNet = await mobilenet.load({ version: 2, alpha: 1.0 });
+      document.getElementById('cls-model-tag').textContent = 'Loaded ✓';
+      document.getElementById('cls-model-tag').className = 'tag active-tag';
+      setModelStatus('MobileNet + PoseNet Active', true);
+    } catch(e) {
+      document.getElementById('cls-results').innerHTML = `<div style="color:var(--red)">${e.message}</div>`;
+      document.getElementById('cls-start-btn').disabled = false;
+      return;
+    }
+  }
+
+  try {
+    S.clsStream = await navigator.mediaDevices.getUserMedia({ video: { width: 480, height: 360 } });
+    const video = document.getElementById('cls-video');
+    video.srcObject = S.clsStream;
+    document.getElementById('cls-overlay').style.display = 'none';
+    document.getElementById('cls-stop-btn').disabled = false;
+    let frames = 0, t = Date.now();
+    S.clsInterval = setInterval(async () => {
+      if (video.readyState < 2) return;
+      frames++;
+      if (Date.now() - t >= 1000) {
+        document.getElementById('cls-fps').textContent = `${frames} FPS`;
+        frames = 0; t = Date.now();
+      }
+      try {
+        const preds = await S.mobileNet.classify(video, 5);
+        document.getElementById('cls-results').innerHTML = preds.map((p, i) => `
+          <div class="bar-row">
+            <div class="bar-label">${p.className.split(',')[0].slice(0,18)}</div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${(p.probability*100).toFixed(0)}%;background:${i===0?'var(--lime)':'var(--cyan)'}"></div></div>
+            <div class="bar-val">${(p.probability*100).toFixed(1)}%</div>
+          </div>
+        `).join('');
+
+        // Log top prediction
+        const log = document.getElementById('cls-log');
+        const time = new Date().toLocaleTimeString('en',{hour12:false});
+        const entry = document.createElement('div');
+        entry.style.cssText = 'display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px';
+        entry.innerHTML = `<span style="color:var(--text3);font-family:var(--font-mono)">${time}</span><span style="color:var(--lime)">${preds[0].className.split(',')[0].slice(0,24)}</span><span style="color:var(--text3);margin-left:auto">${(preds[0].probability*100).toFixed(1)}%</span>`;
+        log.insertBefore(entry, log.firstChild);
+        if (log.children.length > 12) log.lastChild.remove();
+      } catch(e) {}
+    }, 900);
+  } catch(e) {
+    document.getElementById('cls-results').innerHTML = `<div style="color:var(--red)">Camera error: ${e.message}</div>`;
+    document.getElementById('cls-start-btn').disabled = false;
+  }
+}
+
+function stopClassifier() {
+  clearInterval(S.clsInterval);
+  if (S.clsStream) { S.clsStream.getTracks().forEach(t => t.stop()); S.clsStream = null; }
+  document.getElementById('cls-video').srcObject = null;
+  document.getElementById('cls-overlay').style.display = 'flex';
+  document.getElementById('cls-start-btn').disabled = false;
+  document.getElementById('cls-stop-btn').disabled = true;
+}
+
+// ── WORKOUT LOG + SENTIMENT ────────────────────────
+const POS = ['strong','great','amazing','fantastic','crushed','love','best','excellent','powerful','energized','pumped','motivated','awesome','incredible','happy','good','proud','alive','refreshed','fired','beast','nailed','smashed'];
+const NEG = ['tired','sore','hurt','pain','weak','bad','terrible','awful','failed','struggle','exhausted','burnt','injury','skip','miss','bad','frustrated','difficult','hard','rough','slow','stiff'];
+
+function initKeywords() {
+  document.getElementById('pos-keywords').innerHTML = POS.slice(0,12).map(w=>`<span class="tok tok-pos">${w}</span>`).join('');
+  document.getElementById('neg-keywords').innerHTML = NEG.slice(0,12).map(w=>`<span class="tok tok-neg">${w}</span>`).join('');
+}
+
+function loadLogSample(type) {
+  const pos = [
+    "Absolutely crushed it today! 5 sets of squats felt amazing, PR on depth. Energy was incredible all session!",
+    "Best workout in weeks. Bicep curls felt strong and form was perfect. Really motivated to keep pushing!",
+    "Felt powerful and alive. Knocked out jumping jacks, lunges. Body felt great, no soreness at all.",
+  ];
+  const neg = [
+    "Really struggled today, knees were sore and squats were painful. Couldn't finish the session, felt exhausted.",
+    "Terrible form on push-ups, shoulder hurt badly. Frustrated with myself, very slow and stiff today.",
+    "Missed my workout again. Feeling weak and burnt out. Lower back pain making everything difficult.",
+  ];
+  const arr = type === 'pos' ? pos : neg;
+  document.getElementById('log-textarea').value = arr[Math.floor(Math.random()*arr.length)];
+}
+
+function analyzeLog() {
+  const text = document.getElementById('log-textarea').value.trim();
+  if (!text) return;
+
+  const words = text.toLowerCase().replace(/[^a-z\s]/g,'').split(/\s+/);
+  let pos = 0, neg = 0;
+  const tokenized = words.map(w => {
+    if (POS.includes(w)) { pos++; return { w, cls:'pos' }; }
+    if (NEG.includes(w)) { neg++; return { w, cls:'neg' }; }
+    return { w, cls:'neu' };
+  });
+
+  // Negation detection
+  const negators = ['not','no','never','cant','couldnt','didnt','dont'];
+  words.forEach((w,i) => { if (negators.includes(w) && i < words.length-1) { pos = neg; neg = pos; } });
+
+  const total = pos + neg || 1;
+  let score = pos / total;
+  score = Math.max(0.05, Math.min(0.95, score));
+  const isPos = score >= 0.5;
+  const moods = [
+    { min:0.85, emoji:'🔥', label:'ON FIRE', color:'var(--lime)' },
+    { min:0.65, emoji:'😊', label:'POSITIVE', color:'var(--cyan)' },
+    { min:0.5,  emoji:'🙂', label:'OKAY', color:'var(--lime)' },
+    { min:0.3,  emoji:'😔', label:'LOW', color:'var(--orange)' },
+    { min:0,    emoji:'😞', label:'ROUGH', color:'var(--red)' },
+  ];
+  const mood = moods.find(m => score >= m.min);
+
+  document.getElementById('mood-result').innerHTML = `
+    <div class="mood-display">
+      <div class="mood-emoji">${mood.emoji}</div>
+      <div class="mood-label" style="color:${mood.color}">${mood.label}</div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text3)">Positivity Score: <span style="font-family:var(--font-mono);color:${mood.color}">${(score*100).toFixed(0)}%</span></div>
+      <div class="mood-score-bar" style="margin-top:12px">
+        <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${score*100}%;background:${mood.color};border-radius:4px;transition:width .6s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+          <span>NEGATIVE</span><span>POSITIVE</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('log-tokens').innerHTML = tokenized.map(t =>
+    `<span class="tok tok-${t.cls}">${t.w}</span>`
+  ).join('');
+
+  // Context stats
+  const sets = S.savedSets;
+  if (sets.length > 0) {
+    const lastSet = sets[sets.length-1];
+    document.getElementById('log-context-stats').innerHTML = `
+      <strong>Latest session data:</strong> ${lastSet.reps} ${lastSet.exName} reps at <strong>${lastSet.formScore}% form</strong>.
+      ${isPos ? 'Your positive mood may correlate with good performance!' : 'Even on tough days, consistency builds strength.'}
+    `;
+  }
+
+  return { text, score, mood, pos, neg };
+}
+
+function saveLogEntry() {
+  const result = analyzeLog();
+  if (!result) return;
+  const entry = {
+    id: Date.now(),
+    text: result.text,
+    score: result.score,
+    emoji: result.mood.emoji,
+    label: result.mood.label,
+    time: new Date().toLocaleString(),
+    sets: S.sets,
+    reps: S.savedSets.reduce((a,s)=>a+s.reps,0),
+  };
+  S.logEntries.unshift(entry);
+  saveToStorage();
+  document.getElementById('log-textarea').value = '';
+  renderLogHistory();
+}
+
+function renderLogHistory() {
+  const container = document.getElementById('log-history');
+  if (!S.logEntries.length) {
+    container.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:16px 0">No entries yet.</div>';
+    return;
+  }
+  container.innerHTML = S.logEntries.map(e => `
+    <div class="log-entry">
+      <div class="log-entry-header">
+        <span style="font-size:20px">${e.emoji}</span>
+        <span style="font-weight:700;color:var(--text)">${e.label}</span>
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-left:auto">${e.time}</span>
+      </div>
+      <div class="log-entry-text">${e.text.slice(0,200)}${e.text.length>200?'...':''}</div>
+      <div class="log-entry-ex">Session: ${e.reps} total reps, ${e.sets} sets</div>
+    </div>
+  `).join('');
+}
+
+// ── INIT ───────────────────────────────────────────
+function init() {
+  loadFromStorage();
+  renderLogHistory();
+  initKeywords();
+  // Draw empty velocity chart
+  updateVelocityChart();
+
+  // TF.js version badge
+  console.log('%c 🏋️ FitAI Loaded — TF.js ' + tf.version.tfjs,
+    'background:#c8f135;color:#000;font-weight:bold;font-size:13px;padding:4px 10px;border-radius:5px');
+  setModelStatus('Click "Load AI + Start Camera" to begin');
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

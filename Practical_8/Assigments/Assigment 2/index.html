@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fruit Classifier Pro 🍎</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+  <script defer src="script.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 2.3rem;
+    }
+
+    .container {
+      width: 85%;
+      margin: auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    video {
+      width: 320px;
+      border-radius: 15px;
+      border: 3px solid white;
+    }
+
+    .controls {
+      margin: 15px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      margin: 5px;
+      background: #00c6ff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0072ff;
+      transform: scale(1.05);
+    }
+
+    .class-box {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    #results {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    table {
+      margin-top: 15px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid white;
+    }
+
+    th {
+      background: rgba(255,255,255,0.2);
+    }
+
+    progress {
+      width: 300px;
+      height: 15px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<h1>🍓 Fruit Classifier (Evaluation Mode)</h1>
+
+<div class="container">
+
+<video id="webcam" autoplay playsinline></video>
+
+  <div class="controls">
+    <button onclick="setClass('Apple')">🍎 Apple</button>
+    <button onclick="setClass('Banana')">🍌 Banana</button>
+    <button onclick="setClass('Orange')">🍊 Orange</button>
+  </div>
+
+  <div class="class-box" id="classList">Select a class</div>
+
+  <div>
+    <button onclick="capture()">📸 Capture</button>
+    <button onclick="train()">🧠 Train</button>
+    <button onclick="predict()">🔍 Predict</button>
+    <button onclick="evaluate()">📊 Evaluate</button>
+  </div>
+
+  <div id="results">Waiting...</div>
+  <progress id="confidenceBar" value="0" max="100"></progress>
+
+</div>
+
+</body>
+</html>
